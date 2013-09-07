@@ -43,6 +43,25 @@ func (c *client) Account() (*Account, error) {
 	return account, nil
 }
 
+type FairRate struct {
+	Bid  string
+	Ask  string
+	Spot string
+}
+
+func (c *client) FairRate(currency string) (*FairRate, error) {
+	body, err := c.read("fair_rate/" + currency + ".json")
+	if err != nil {
+		return nil, err
+	}
+	fairRate := new(FairRate)
+	err = json.Unmarshal(body, fairRate)
+	if err != nil {
+		return nil, err
+	}
+	return fairRate, nil
+}
+
 func (c *client) read(api string) ([]byte, error) {
 	request, _ := http.NewRequest("GET", c.endpoint+"/"+api, nil)
 	request.SetBasicAuth(c.apiKey, "")
