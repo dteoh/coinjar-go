@@ -21,27 +21,26 @@ func NewClient(apiKey string) (c *client) {
 	return
 }
 
-type Account struct {
-	User struct {
-		Uuid               string
-		Email              string
-		FullName           string `json:"full_name"`
-		AvailableBalance   string `json:"available_balance"`
-		UnconfirmedBalance string `json:"unconfirmed_balance"`
-	}
+type User struct {
+	Uuid               string
+	Email              string
+	FullName           string `json:"full_name"`
+	AvailableBalance   string `json:"available_balance"`
+	UnconfirmedBalance string `json:"unconfirmed_balance"`
 }
 
-func (c *client) Account() (*Account, error) {
+func (c *client) Account() (obj *User, err error) {
 	body, err := c.read("account.json")
 	if err != nil {
-		return nil, err
+		return
 	}
-	account := new(Account)
-	err = json.Unmarshal(body, account)
+
+	var wrapper struct{ User *User }
+	err = json.Unmarshal(body, &wrapper)
 	if err != nil {
-		return nil, err
+		return
 	}
-	return account, nil
+	return wrapper.User, nil
 }
 
 type BitcoinAddress struct {
