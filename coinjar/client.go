@@ -43,6 +43,30 @@ func (c *client) Account() (*Account, error) {
 	return account, nil
 }
 
+type BitcoinAddress struct {
+	Label          string
+	TotalConfirmed string `json:"total_confirmed"`
+	TotalReceived  string `json:"total_received"`
+	Address        string
+}
+
+type bitcoinAddresses struct {
+	Addresses []BitcoinAddress `json:"bitcoin_addresses"`
+}
+
+func (c *client) BitcoinAddresses() ([]BitcoinAddress, error) {
+	body, err := c.read("bitcoin_addresses.json")
+	if err != nil {
+		return nil, err
+	}
+	bitcoinAddresses := new(bitcoinAddresses)
+	err = json.Unmarshal(body, bitcoinAddresses)
+	if err != nil {
+		return nil, err
+	}
+	return bitcoinAddresses.Addresses, nil
+}
+
 type FairRate struct {
 	Bid  string
 	Ask  string
