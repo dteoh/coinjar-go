@@ -50,21 +50,20 @@ type BitcoinAddress struct {
 	Address        string
 }
 
-type bitcoinAddresses struct {
-	Addresses []BitcoinAddress `json:"bitcoin_addresses"`
-}
-
-func (c *client) BitcoinAddresses() ([]BitcoinAddress, error) {
+func (c *client) BitcoinAddresses() (obj []BitcoinAddress, err error) {
 	body, err := c.read("bitcoin_addresses.json")
 	if err != nil {
-		return nil, err
+		return
 	}
-	bitcoinAddresses := new(bitcoinAddresses)
-	err = json.Unmarshal(body, bitcoinAddresses)
+
+	var wrapper struct {
+		Addresses []BitcoinAddress `json:"bitcoin_addresses"`
+	}
+	err = json.Unmarshal(body, &wrapper)
 	if err != nil {
-		return nil, err
+		return
 	}
-	return bitcoinAddresses.Addresses, nil
+	return wrapper.Addresses, nil
 }
 
 func (c *client) BitcoinAddress(address string) (obj *BitcoinAddress, err error) {
@@ -86,39 +85,38 @@ func (c *client) BitcoinAddress(address string) (obj *BitcoinAddress, err error)
 	return wrapper.Address, nil
 }
 
-
 type FairRate struct {
 	Bid  string
 	Ask  string
 	Spot string
 }
 
-func (c *client) FairRate(currency string) (*FairRate, error) {
+func (c *client) FairRate(currency string) (obj *FairRate, err error) {
 	body, err := c.read("fair_rate/" + currency + ".json")
 	if err != nil {
-		return nil, err
+		return
 	}
-	fairRate := new(FairRate)
-	err = json.Unmarshal(body, fairRate)
+	obj = new(FairRate)
+	err = json.Unmarshal(body, obj)
 	if err != nil {
-		return nil, err
+		return
 	}
-	return fairRate, nil
+	return
 }
 
-func (c *client) read(api string) ([]byte, error) {
+func (c *client) read(api string) (body []byte, err error) {
 	request, _ := http.NewRequest("GET", c.endpoint+"/"+api, nil)
 	request.SetBasicAuth(c.apiKey, "")
 
 	resp, err := c.httpClient.Do(request)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return
 	}
-	return body, nil
+	return
 }
