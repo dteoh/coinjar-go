@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strconv"
 )
 
 type client struct {
@@ -50,8 +52,14 @@ type BitcoinAddress struct {
 	Address        string
 }
 
-func (c *client) BitcoinAddresses() (obj []BitcoinAddress, err error) {
-	body, err := c.read("bitcoin_addresses.json")
+func (c *client) BitcoinAddresses() ([]BitcoinAddress, error) {
+	return c.BitcoinAddressesPaginated(100, 0)
+}
+
+func (c *client) BitcoinAddressesPaginated(limit, offset int) (obj []BitcoinAddress, err error) {
+	body, err := c.read("bitcoin_addresses.json",
+		"limit", strconv.Itoa(limit),
+		"offset", strconv.Itoa(offset))
 	if err != nil {
 		return
 	}
@@ -104,9 +112,10 @@ func (c *client) FairRate(currency string) (obj *FairRate, err error) {
 	return
 }
 
-func (c *client) read(api string) (body []byte, err error) {
+func (c *client) read(api string, params ...string) (body []byte, err error) {
 	request, _ := http.NewRequest("GET", c.endpoint+"/"+api, nil)
 	request.SetBasicAuth(c.apiKey, "")
+	request.URL.RawQuery = createQuery(params)
 
 	resp, err := c.httpClient.Do(request)
 	if err != nil {
@@ -119,4 +128,16 @@ func (c *client) read(api string) (body []byte, err error) {
 		return
 	}
 	return
+}
+
+func createQuery(params []string) string {
+	plen := len(params)
+	if plen%2 == 1 {
+		plen = plen - 1
+	}
+	values := url.Values{}
+	for i := 0; i < plen; i += 2 {
+		values.Set(params[i], params[i+1])
+	}
+	return values.Encode()
 }
