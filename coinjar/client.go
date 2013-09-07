@@ -3,10 +3,12 @@ package coinjar
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 type client struct {
@@ -91,6 +93,57 @@ func (c *client) BitcoinAddress(address string) (obj *BitcoinAddress, err error)
 		return
 	}
 	return wrapper.Address, nil
+}
+
+type Transaction struct {
+	Confirmations      string
+	Status             string
+	Amount             string
+	Reference          string
+	CounterpartyType   string `json:"counterparty_type"`
+	UpdatedAt          string `json:"updated_at"`
+	UUID               string
+	BitcoinTxid        string `json:"bitcoin_txid"`
+	RelatedPaymentUUID string `json:"related_payment_uuid"`
+	CounterpartyName   string `json:"counterparty_name"`
+	CreatedAt          string `json:"created_at"`
+}
+
+func (c *client) Transactions() ([]Transaction, error) {
+	return c.TransactionsList(100, 0)
+}
+
+func (c *client) TransactionsList(limit, offset int) (obj []Transaction, err error) {
+	body, err := c.read("transactions.json",
+		"limit", strconv.Itoa(limit),
+		"offset", strconv.Itoa(offset))
+	if err != nil {
+		return
+	}
+
+	var wrapper struct{ Transactions []Transaction }
+	err = json.Unmarshal(body, &wrapper)
+	if err != nil {
+		return
+	}
+	return wrapper.Transactions, nil
+}
+
+func (c *client) Transaction(uuid string) (obj *Transaction, err error) {
+	body, err := c.read("transactions/" + uuid + ".json")
+	if err != nil {
+		return
+	}
+	if strings.Contains(string(body), "\"status\":\"404\"") {
+		return nil, errors.New(fmt.Sprintf("Transaction not found, response body: %q", body))
+	}
+
+	var wrapper struct{ Transaction *Transaction }
+	err = json.Unmarshal(body, &wrapper)
+	if err != nil {
+		return
+	}
+	return wrapper.Transaction, nil
 }
 
 type FairRate struct {
