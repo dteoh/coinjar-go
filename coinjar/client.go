@@ -32,6 +32,9 @@ type Account struct {
 
 func (c *client) Account() (*Account, error) {
 	body, err := c.read("account.json")
+	if err != nil {
+		return nil, err
+	}
 	account := new(Account)
 	err = json.Unmarshal(body, account)
 	if err != nil {
