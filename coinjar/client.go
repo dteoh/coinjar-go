@@ -2,6 +2,7 @@ package coinjar
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 )
@@ -66,6 +67,26 @@ func (c *client) BitcoinAddresses() ([]BitcoinAddress, error) {
 	}
 	return bitcoinAddresses.Addresses, nil
 }
+
+func (c *client) BitcoinAddress(address string) (obj *BitcoinAddress, err error) {
+	body, err := c.read("bitcoin_addresses/" + address + ".json")
+	if err != nil {
+		return
+	}
+	if string(body) == "null" {
+		return nil, errors.New("Bitcoin address not found")
+	}
+
+	var wrapper struct {
+		Address *BitcoinAddress `json:"bitcoin_address"`
+	}
+	err = json.Unmarshal(body, &wrapper)
+	if err != nil {
+		return
+	}
+	return wrapper.Address, nil
+}
+
 
 type FairRate struct {
 	Bid  string
