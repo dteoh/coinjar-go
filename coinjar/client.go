@@ -53,10 +53,10 @@ type BitcoinAddress struct {
 }
 
 func (c *client) BitcoinAddresses() ([]BitcoinAddress, error) {
-	return c.BitcoinAddressesPaginated(100, 0)
+	return c.BitcoinAddressesList(100, 0)
 }
 
-func (c *client) BitcoinAddressesPaginated(limit, offset int) (obj []BitcoinAddress, err error) {
+func (c *client) BitcoinAddressesList(limit, offset int) (obj []BitcoinAddress, err error) {
 	body, err := c.read("bitcoin_addresses.json",
 		"limit", strconv.Itoa(limit),
 		"offset", strconv.Itoa(offset))
