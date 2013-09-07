@@ -24,7 +24,7 @@ func NewClient(apiKey string) (c *client) {
 }
 
 type User struct {
-	Uuid               string
+	UUID               string
 	Email              string
 	FullName           string `json:"full_name"`
 	AvailableBalance   string `json:"available_balance"`
