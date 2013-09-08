@@ -95,6 +95,53 @@ func (c *client) BitcoinAddress(address string) (obj *BitcoinAddress, err error)
 	return wrapper.Address, nil
 }
 
+type Contact struct {
+	UpdatedAt string `json:"updated_at"`
+	UUID      string
+	Name      string
+	PayeeName string
+	PayeeType string
+	CreatedAt string
+}
+
+func (c *client) Contacts() ([]Contact, error) {
+	return c.ListContacts(100, 0)
+}
+
+func (c *client) ListContacts(limit, offset int) (obj []Contact, err error) {
+	body, err := c.read("contacts.json",
+		"limit", strconv.Itoa(limit),
+		"offset", strconv.Itoa(offset))
+	if err != nil {
+		return
+	}
+
+	var wrapper struct{ Contacts []Contact }
+	err = json.Unmarshal(body, &wrapper)
+	if err != nil {
+		return
+	}
+	return wrapper.Contacts, nil
+}
+
+func (c *client) Contact(uuid string) (obj *Contact, err error) {
+	body, err := c.read("contacts/" + uuid + ".json")
+	if err != nil {
+		return
+	}
+
+	if string(body) == "null" {
+		return nil, errors.New("Contact not found")
+	}
+
+	var wrapper struct{ Contact *Contact }
+	err = json.Unmarshal(body, &wrapper)
+	if err != nil {
+		return
+	}
+	return wrapper.Contact, nil
+}
+
 type Transaction struct {
 	Confirmations      string
 	Status             string
