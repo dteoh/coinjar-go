@@ -142,18 +142,72 @@ func (c *client) Contact(uuid string) (obj *Contact, err error) {
 	return wrapper.Contact, nil
 }
 
-type Transaction struct {
-	Confirmations      string
+type Payment struct {
 	Status             string
 	Amount             string
-	Reference          string
-	CounterpartyType   string `json:"counterparty_type"`
-	UpdatedAt          string `json:"updated_at"`
-	UUID               string
-	BitcoinTxid        string `json:"bitcoin_txid"`
-	RelatedPaymentUUID string `json:"related_payment_uuid"`
-	CounterpartyName   string `json:"counterparty_name"`
 	CreatedAt          string `json:"created_at"`
+	PayeeName          string `json:"payee_name"`
+	PayeeType          string `json"payee_type"`
+	Reference          string
+	RelatedTransaction *Transaction `json:"related_transaction"`
+	UUID               string
+	UpdatedAt          string `json:"updated_at"`
+}
+
+func (c *client) Payments() (obj []Payment, err error) {
+	return c.ListPayments(100, 0)
+}
+
+func (c *client) ListPayments(limit, offset int) (obj []Payment, err error) {
+	body, err := c.read("payments.json",
+		"limit", strconv.Itoa(limit),
+		"offset", strconv.Itoa(offset))
+	if err != nil {
+		return
+	}
+
+	var wrapper struct{ Payments []Payment }
+	err = json.Unmarshal(body, &wrapper)
+	if err != nil {
+		return
+	}
+	return wrapper.Payments, nil
+}
+
+func (c *client) Payment(uuid string) (obj *Payment, err error) {
+	body, err := c.read("payments/" + uuid + ".json")
+	if err != nil {
+		return
+	}
+	if string(body) == "null" {
+		return nil, errors.New("Payment not found")
+	}
+
+	var wrapper struct{ Payment *Payment }
+	err = json.Unmarshal(body, &wrapper)
+	if err != nil {
+		return
+	}
+	return wrapper.Payment, nil
+}
+
+type Transaction struct {
+	Amount              string
+	BitcoinTxid         string `json:"bitcoin_txid"`
+	Confirmations       string
+	CounterpartyAddress string `json:"counterparty_address"`
+	CounterpartyName    string `json:"counterparty_name"`
+	CounterpartyType    string `json:"counterparty_type"`
+	CounterpartyUserID  int    `json:"counterparty_user_id"`
+	CreatedAt           string `json:"created_at"`
+	ID                  int
+	PaymentID           int `json:"payment_id"`
+	Reference           string
+	RelatedPaymentUUID  string `json:"related_payment_uuid"`
+	Status              string
+	UUID                string
+	UpdatedAt           string `json:"updated_at"`
+	UserID              int    `json:"user_id"`
 }
 
 func (c *client) Transactions() ([]Transaction, error) {
