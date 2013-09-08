@@ -55,10 +55,10 @@ type BitcoinAddress struct {
 }
 
 func (c *client) BitcoinAddresses() ([]BitcoinAddress, error) {
-	return c.BitcoinAddressesList(100, 0)
+	return c.ListBitcoinAddresses(100, 0)
 }
 
-func (c *client) BitcoinAddressesList(limit, offset int) (obj []BitcoinAddress, err error) {
+func (c *client) ListBitcoinAddresses(limit, offset int) (obj []BitcoinAddress, err error) {
 	body, err := c.read("bitcoin_addresses.json",
 		"limit", strconv.Itoa(limit),
 		"offset", strconv.Itoa(offset))
@@ -110,10 +110,10 @@ type Transaction struct {
 }
 
 func (c *client) Transactions() ([]Transaction, error) {
-	return c.TransactionsList(100, 0)
+	return c.ListTransactions(100, 0)
 }
 
-func (c *client) TransactionsList(limit, offset int) (obj []Transaction, err error) {
+func (c *client) ListTransactions(limit, offset int) (obj []Transaction, err error) {
 	body, err := c.read("transactions.json",
 		"limit", strconv.Itoa(limit),
 		"offset", strconv.Itoa(offset))
