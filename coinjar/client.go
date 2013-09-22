@@ -11,14 +11,14 @@ import (
 	"strings"
 )
 
-type client struct {
+type Client struct {
 	apiKey     string
 	endpoint   string
 	httpClient *http.Client
 }
 
-func NewClient(apiKey string) (c *client) {
-	c = new(client)
+func NewClient(apiKey string) (c *Client) {
+	c = new(Client)
 	c.apiKey = apiKey
 	c.endpoint = "https://api.coinjar.io/v1"
 	c.httpClient = new(http.Client)
@@ -33,7 +33,7 @@ type User struct {
 	UnconfirmedBalance string `json:"unconfirmed_balance"`
 }
 
-func (c *client) Account() (obj *User, err error) {
+func (c *Client) Account() (obj *User, err error) {
 	body, err := c.read("account.json")
 	if err != nil {
 		return
@@ -54,11 +54,11 @@ type BitcoinAddress struct {
 	Address        string
 }
 
-func (c *client) BitcoinAddresses() ([]BitcoinAddress, error) {
+func (c *Client) BitcoinAddresses() ([]BitcoinAddress, error) {
 	return c.ListBitcoinAddresses(100, 0)
 }
 
-func (c *client) ListBitcoinAddresses(limit, offset int) (obj []BitcoinAddress, err error) {
+func (c *Client) ListBitcoinAddresses(limit, offset int) (obj []BitcoinAddress, err error) {
 	body, err := c.read("bitcoin_addresses.json",
 		"limit", strconv.Itoa(limit),
 		"offset", strconv.Itoa(offset))
@@ -76,7 +76,7 @@ func (c *client) ListBitcoinAddresses(limit, offset int) (obj []BitcoinAddress, 
 	return wrapper.Addresses, nil
 }
 
-func (c *client) BitcoinAddress(address string) (obj *BitcoinAddress, err error) {
+func (c *Client) BitcoinAddress(address string) (obj *BitcoinAddress, err error) {
 	body, err := c.read("bitcoin_addresses/" + address + ".json")
 	if err != nil {
 		return
@@ -104,11 +104,11 @@ type Contact struct {
 	CreatedAt string
 }
 
-func (c *client) Contacts() ([]Contact, error) {
+func (c *Client) Contacts() ([]Contact, error) {
 	return c.ListContacts(100, 0)
 }
 
-func (c *client) ListContacts(limit, offset int) (obj []Contact, err error) {
+func (c *Client) ListContacts(limit, offset int) (obj []Contact, err error) {
 	body, err := c.read("contacts.json",
 		"limit", strconv.Itoa(limit),
 		"offset", strconv.Itoa(offset))
@@ -124,7 +124,7 @@ func (c *client) ListContacts(limit, offset int) (obj []Contact, err error) {
 	return wrapper.Contacts, nil
 }
 
-func (c *client) Contact(uuid string) (obj *Contact, err error) {
+func (c *Client) Contact(uuid string) (obj *Contact, err error) {
 	body, err := c.read("contacts/" + uuid + ".json")
 	if err != nil {
 		return
@@ -154,11 +154,11 @@ type Payment struct {
 	UpdatedAt          string `json:"updated_at"`
 }
 
-func (c *client) Payments() (obj []Payment, err error) {
+func (c *Client) Payments() (obj []Payment, err error) {
 	return c.ListPayments(100, 0)
 }
 
-func (c *client) ListPayments(limit, offset int) (obj []Payment, err error) {
+func (c *Client) ListPayments(limit, offset int) (obj []Payment, err error) {
 	body, err := c.read("payments.json",
 		"limit", strconv.Itoa(limit),
 		"offset", strconv.Itoa(offset))
@@ -174,7 +174,7 @@ func (c *client) ListPayments(limit, offset int) (obj []Payment, err error) {
 	return wrapper.Payments, nil
 }
 
-func (c *client) Payment(uuid string) (obj *Payment, err error) {
+func (c *Client) Payment(uuid string) (obj *Payment, err error) {
 	body, err := c.read("payments/" + uuid + ".json")
 	if err != nil {
 		return
@@ -210,11 +210,11 @@ type Transaction struct {
 	UserID              int    `json:"user_id"`
 }
 
-func (c *client) Transactions() ([]Transaction, error) {
+func (c *Client) Transactions() ([]Transaction, error) {
 	return c.ListTransactions(100, 0)
 }
 
-func (c *client) ListTransactions(limit, offset int) (obj []Transaction, err error) {
+func (c *Client) ListTransactions(limit, offset int) (obj []Transaction, err error) {
 	body, err := c.read("transactions.json",
 		"limit", strconv.Itoa(limit),
 		"offset", strconv.Itoa(offset))
@@ -230,7 +230,7 @@ func (c *client) ListTransactions(limit, offset int) (obj []Transaction, err err
 	return wrapper.Transactions, nil
 }
 
-func (c *client) Transaction(uuid string) (obj *Transaction, err error) {
+func (c *Client) Transaction(uuid string) (obj *Transaction, err error) {
 	body, err := c.read("transactions/" + uuid + ".json")
 	if err != nil {
 		return
@@ -253,7 +253,7 @@ type FairRate struct {
 	Spot string
 }
 
-func (c *client) FairRate(currency string) (obj *FairRate, err error) {
+func (c *Client) FairRate(currency string) (obj *FairRate, err error) {
 	body, err := c.read("fair_rate/" + currency + ".json")
 	if err != nil {
 		return
@@ -266,7 +266,7 @@ func (c *client) FairRate(currency string) (obj *FairRate, err error) {
 	return
 }
 
-func (c *client) read(api string, params ...string) (body []byte, err error) {
+func (c *Client) read(api string, params ...string) (body []byte, err error) {
 	request, _ := http.NewRequest("GET", c.endpoint+"/"+api, nil)
 	request.SetBasicAuth(c.apiKey, "")
 	request.URL.RawQuery = createQuery(params)
