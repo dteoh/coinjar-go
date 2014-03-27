@@ -17,10 +17,14 @@ type Client struct {
 	httpClient *http.Client
 }
 
-func NewClient(apiKey string) (c *Client) {
+func NewClient(apiKey string) *Client {
+	return NewCustomClient(apiKey, "https://api.coinjar.io/v1")
+}
+
+func NewCustomClient(apiKey, endpoint string) (c *Client) {
 	c = new(Client)
 	c.apiKey = apiKey
-	c.endpoint = "https://api.coinjar.io/v1"
+	c.endpoint = endpoint
 	c.httpClient = new(http.Client)
 	return
 }
