@@ -1,7 +1,8 @@
 # coinjar-go
 
-An unofficial golang package to interact with the CoinJar API.
+[![Build Status](https://travis-ci.org/dteoh/coinjar-go.svg?branch=master)](https://travis-ci.org/dteoh/coinjar-go)
 
+An unofficial golang package to interact with the CoinJar API.
 
 ## Usage
 
