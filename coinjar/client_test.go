@@ -12,6 +12,7 @@ func TestAccount(t *testing.T) {
 		// TODO check auth header
 		if url := r.URL.Path; url == "/account.json" {
 			// TODO read this from a file
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
 			fmt.Fprint(w, `{"user":{"uuid":"29d7f276-ba50-11e3-b016-7eddf9792095","email":"test@example.com","full_name":"John Doe","available_balance":"1.0","unconfirmed_balance":"0.3"}}`)
 		} else {
 			t.Errorf("Requested unexpected endpoint: %v", url)
