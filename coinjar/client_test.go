@@ -24,12 +24,12 @@ func TestAccount(t *testing.T) {
 
 	client := NewCustomClient("someapikey", ts.URL)
 	user, err := client.Account()
-	notNil(t, err)
-	equal(t, user.UUID, "29d7f276-ba50-11e3-b016-7eddf9792095")
-	equal(t, user.Email, "test@example.com")
-	equal(t, user.FullName, "John Doe")
-	equal(t, user.AvailableBalance, "1.0")
-	equal(t, user.UnconfirmedBalance, "0.3")
+	assertNotNil(t, err)
+	assertEqual(t, user.UUID, "29d7f276-ba50-11e3-b016-7eddf9792095")
+	assertEqual(t, user.Email, "test@example.com")
+	assertEqual(t, user.FullName, "John Doe")
+	assertEqual(t, user.AvailableBalance, "1.0")
+	assertEqual(t, user.UnconfirmedBalance, "0.3")
 }
 
 func assertRequestUsesApiKey(t *testing.T, r *http.Request, key string) {
@@ -37,7 +37,7 @@ func assertRequestUsesApiKey(t *testing.T, r *http.Request, key string) {
 		t.Error("Not using Basic Authentication")
 		return
 	}
-	equal(t, parseApiKey(r), key)
+	assertEqual(t, parseApiKey(r), key)
 }
 
 func parseApiKey(r *http.Request) string {
@@ -53,13 +53,13 @@ func parseApiKey(r *http.Request) string {
 	return strings.SplitN(string(data), ":", 2)[0]
 }
 
-func notNil(t *testing.T, actual interface{}) {
+func assertNotNil(t *testing.T, actual interface{}) {
 	if actual != nil {
 		t.Errorf("Assertion 'notNil' failed\n\tActual: %v", actual)
 	}
 }
 
-func equal(t *testing.T, actual, expected interface{}) {
+func assertEqual(t *testing.T, actual, expected interface{}) {
 	if actual != expected {
 		t.Errorf("Assertion 'equal' failed\n\tActual: %v\n\tExpected: %v", actual, expected)
 	}
