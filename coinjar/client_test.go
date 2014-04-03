@@ -1,15 +1,17 @@
 package coinjar
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
 func TestAccount(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO check auth header
+		assertRequestUsesApiKey(t, r, "someapikey")
 		if url := r.URL.Path; url == "/account.json" {
 			// TODO read this from a file
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -28,6 +30,27 @@ func TestAccount(t *testing.T) {
 	equal(t, user.FullName, "John Doe")
 	equal(t, user.AvailableBalance, "1.0")
 	equal(t, user.UnconfirmedBalance, "0.3")
+}
+
+func assertRequestUsesApiKey(t *testing.T, r *http.Request, key string) {
+	if !strings.HasPrefix(r.Header.Get("Authorization"), "Basic") {
+		t.Error("Not using Basic Authentication")
+		return
+	}
+	equal(t, parseApiKey(r), key)
+}
+
+func parseApiKey(r *http.Request) string {
+	val := r.Header.Get("Authorization")
+	parts := strings.SplitN(val, " ", 2)
+	if len(parts) != 2 {
+		return ""
+	}
+	data, err := base64.StdEncoding.DecodeString(parts[1])
+	if err != nil {
+		return ""
+	}
+	return strings.SplitN(string(data), ":", 2)[0]
 }
 
 func notNil(t *testing.T, actual interface{}) {
