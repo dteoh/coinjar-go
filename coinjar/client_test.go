@@ -33,7 +33,7 @@ func TestAccount(t *testing.T) {
 
 	client := NewCustomClient("someapikey", ts.URL)
 	user, err := client.Account()
-	assertNotNil(t, err)
+	assertNil(t, err)
 	assertEqual(t, user.UUID, "29d7f276-ba50-11e3-b016-7eddf9792095")
 	assertEqual(t, user.Email, "test@example.com")
 	assertEqual(t, user.FullName, "John Doe")
@@ -62,9 +62,9 @@ func parseApiKey(r *http.Request) string {
 	return strings.SplitN(string(data), ":", 2)[0]
 }
 
-func assertNotNil(t *testing.T, actual interface{}) {
+func assertNil(t *testing.T, actual interface{}) {
 	if actual != nil {
-		t.Errorf("Assertion 'notNil' failed\n\tActual: %v", actual)
+		t.Errorf("Assertion 'nil' failed\n\tActual: %v", actual)
 	}
 }
 
