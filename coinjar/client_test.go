@@ -11,6 +11,7 @@ import (
 
 func TestAccount(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertEqual(t, r.Method, "GET")
 		assertRequestUsesApiKey(t, r, "someapikey")
 		if url := r.URL.Path; url == "/account.json" {
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -45,6 +46,7 @@ func TestBitcoinAddresses(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assertRequestUsesApiKey(t, r, "pJ451Sk8tXz9LdUbGg1sobLUZuVzuJwdyr4sD3owFW4WYHxo")
 		if url := r.URL.Path; url == "/bitcoin_addresses.json" {
+			assertEqual(t, r.Method, "GET")
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
 			fmt.Fprint(w, `
 				{
