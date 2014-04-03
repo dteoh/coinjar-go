@@ -13,9 +13,18 @@ func TestAccount(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assertRequestUsesApiKey(t, r, "someapikey")
 		if url := r.URL.Path; url == "/account.json" {
-			// TODO read this from a file
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
-			fmt.Fprint(w, `{"user":{"uuid":"29d7f276-ba50-11e3-b016-7eddf9792095","email":"test@example.com","full_name":"John Doe","available_balance":"1.0","unconfirmed_balance":"0.3"}}`)
+			fmt.Fprint(w, `
+				{
+					"user": {
+						"available_balance": "1.0",
+						"email": "test@example.com",
+						"full_name": "John Doe",
+						"unconfirmed_balance": "0.3",
+						"uuid": "29d7f276-ba50-11e3-b016-7eddf9792095"
+					}
+				}
+			`)
 		} else {
 			t.Errorf("Requested unexpected endpoint: %v", url)
 		}
