@@ -148,6 +148,37 @@ func TestListBitcoinAddresses(t *testing.T) {
 	}
 }
 
+func TestBitcoinAddress(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertRequestUsesApiKey(t, r, "pJ451Sk8tXz9LdUbGg1sobLUZuVzuJwdyr4sD3owFW4WYHxo")
+		if url := r.URL.Path; url == "/bitcoin_addresses/mgk4K3gdBKRDUJ27jB1VzAATH4upGquYDR.json" {
+			assertEqual(t, r.Method, "GET")
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			fmt.Fprint(w, `
+				{
+					"bitcoin_address": {
+						"label": "Mojocoin",
+						"total_confirmed": "21.71364123",
+						"total_received": "21.71364124",
+						"address": "mgk4K3gdBKRDUJ27jB1VzAATH4upGquYDR"
+					}
+				}
+			`)
+		} else {
+			t.Errorf("Requested unexpected endpoint: %v", url)
+		}
+	}))
+	defer ts.Close()
+
+	client := NewCustomClient("pJ451Sk8tXz9LdUbGg1sobLUZuVzuJwdyr4sD3owFW4WYHxo", ts.URL)
+	address, err := client.BitcoinAddress("mgk4K3gdBKRDUJ27jB1VzAATH4upGquYDR")
+	assertNil(t, err)
+	assertEqual(t, address.Label, "Mojocoin")
+	assertEqual(t, address.TotalConfirmed, "21.71364123")
+	assertEqual(t, address.TotalReceived, "21.71364124")
+	assertEqual(t, address.Address, "mgk4K3gdBKRDUJ27jB1VzAATH4upGquYDR")
+}
+
 func assertRequestUsesApiKey(t *testing.T, r *http.Request, key string) {
 	if !strings.HasPrefix(r.Header.Get("Authorization"), "Basic") {
 		t.Error("Not using Basic Authentication")
