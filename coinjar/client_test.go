@@ -179,6 +179,66 @@ func TestBitcoinAddress(t *testing.T) {
 	assertEqual(t, address.Address, "mgk4K3gdBKRDUJ27jB1VzAATH4upGquYDR")
 }
 
+func TestContacts(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertRequestUsesApiKey(t, r, "pJ451Sk8tXz9LdUbGg1sobLUZuVzuJwdyr4sD3owFW4WYHxo")
+		if url := r.URL.Path; url == "/contacts.json" {
+			assertEqual(t, r.Method, "GET")
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			fmt.Fprint(w, `
+				{
+					"contacts": [
+						{
+							"updated_at": "2013-06-25T17:58:23.000+10:00",
+							"uuid": "e359fd02-0079-4ef0-9f1f-706a84f39cca",
+							"name": "Ryan Zhou",
+							"payee_name": "ryan@coinjar.io",
+							"payee_type": "WALLET",
+							"created_at": "2013-06-25T17:58:23.000+10:00"
+						},
+						{
+							"updated_at": "2013-06-25T17:58:17.000+10:00",
+							"uuid": "e78a2823-a567-41bd-8355-8472ee6fbb89",
+							"name": "Jerrold Poh",
+							"payee_name": "jerrold@coinjar.io",
+							"payee_type": "WALLET",
+							"created_at": "2013-06-25T17:58:17.000+10:00"
+						}
+					]
+				}
+			`)
+		} else {
+			t.Errorf("Requested unexpected endpoint: %v", url)
+		}
+	}))
+	defer ts.Close()
+
+	client := NewCustomClient("pJ451Sk8tXz9LdUbGg1sobLUZuVzuJwdyr4sD3owFW4WYHxo", ts.URL)
+	contacts, err := client.Contacts()
+	assertNil(t, err)
+	assertEqual(t, len(contacts), 2)
+
+	{
+		contact := contacts[0]
+		assertEqual(t, contact.UpdatedAt, "2013-06-25T17:58:23.000+10:00")
+		assertEqual(t, contact.UUID, "e359fd02-0079-4ef0-9f1f-706a84f39cca")
+		assertEqual(t, contact.Name, "Ryan Zhou")
+		assertEqual(t, contact.PayeeName, "ryan@coinjar.io")
+		assertEqual(t, contact.PayeeType, "WALLET")
+		assertEqual(t, contact.CreatedAt, "2013-06-25T17:58:23.000+10:00")
+	}
+
+	{
+		contact := contacts[1]
+		assertEqual(t, contact.UpdatedAt, "2013-06-25T17:58:17.000+10:00")
+		assertEqual(t, contact.UUID, "e78a2823-a567-41bd-8355-8472ee6fbb89")
+		assertEqual(t, contact.Name, "Jerrold Poh")
+		assertEqual(t, contact.PayeeName, "jerrold@coinjar.io")
+		assertEqual(t, contact.PayeeType, "WALLET")
+		assertEqual(t, contact.CreatedAt, "2013-06-25T17:58:17.000+10:00")
+	}
+}
+
 func assertRequestUsesApiKey(t *testing.T, r *http.Request, key string) {
 	if !strings.HasPrefix(r.Header.Get("Authorization"), "Basic") {
 		t.Error("Not using Basic Authentication")

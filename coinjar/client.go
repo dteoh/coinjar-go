@@ -103,9 +103,9 @@ type Contact struct {
 	UpdatedAt string `json:"updated_at"`
 	UUID      string
 	Name      string
-	PayeeName string
-	PayeeType string
-	CreatedAt string
+	PayeeName string `json:"payee_name"`
+	PayeeType string `json:"payee_type"`
+	CreatedAt string `json:"created_at"`
 }
 
 func (c *Client) Contacts() ([]Contact, error) {
