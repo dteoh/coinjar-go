@@ -301,6 +301,42 @@ func TestListContacts(t *testing.T) {
 	}
 }
 
+func TestContact(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertRequestUsesApiKey(t, r, "pJ451Sk8tXz9LdUbGg1sobLUZuVzuJwdyr4sD3owFW4WYHxo")
+		if url := r.URL.Path; url == "/contacts/e359fd02-0079-4ef0-9f1f-706a84f39cca.json" {
+			assertEqual(t, r.Method, "GET")
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			fmt.Fprint(w, `
+				{
+					"contact": {
+						"updated_at": "2013-06-25T17:58:23.000+10:00",
+						"uuid": "e359fd02-0079-4ef0-9f1f-706a84f39cca",
+						"name": "Ryan Zhou",
+						"payee_name": "ryan@coinjar.io",
+						"payee_type": "WALLET",
+						"created_at": "2013-06-25T17:58:23.000+10:00"
+					}
+				}
+			`)
+		} else {
+			t.Errorf("Requested unexpected endpoint: %v", url)
+		}
+	}))
+	defer ts.Close()
+
+	client := NewCustomClient("pJ451Sk8tXz9LdUbGg1sobLUZuVzuJwdyr4sD3owFW4WYHxo", ts.URL)
+	contact, err := client.Contact("e359fd02-0079-4ef0-9f1f-706a84f39cca")
+	assertNil(t, err)
+
+	assertEqual(t, contact.UpdatedAt, "2013-06-25T17:58:23.000+10:00")
+	assertEqual(t, contact.UUID, "e359fd02-0079-4ef0-9f1f-706a84f39cca")
+	assertEqual(t, contact.Name, "Ryan Zhou")
+	assertEqual(t, contact.PayeeName, "ryan@coinjar.io")
+	assertEqual(t, contact.PayeeType, "WALLET")
+	assertEqual(t, contact.CreatedAt, "2013-06-25T17:58:23.000+10:00")
+}
+
 func assertRequestUsesApiKey(t *testing.T, r *http.Request, key string) {
 	if !strings.HasPrefix(r.Header.Get("Authorization"), "Basic") {
 		t.Error("Not using Basic Authentication")
