@@ -151,7 +151,7 @@ type Payment struct {
 	Amount             string
 	CreatedAt          string `json:"created_at"`
 	PayeeName          string `json:"payee_name"`
-	PayeeType          string `json"payee_type"`
+	PayeeType          string `json:"payee_type"`
 	Reference          string
 	RelatedTransaction *Transaction `json:"related_transaction"`
 	UUID               string
