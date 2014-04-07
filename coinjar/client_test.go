@@ -671,6 +671,86 @@ func TestPayment(t *testing.T) {
 	assertEqual(t, related.CreatedAt, "2013-06-19T12:06:54.000+10:00")
 }
 
+func TestTransactions(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertRequestUsesApiKey(t, r, "pJ451Sk8tXz9LdUbGg1sobLUZuVzuJwdyr4sD3owFW4WYHxo")
+		if url := r.URL.Path; url == "/transactions.json" {
+			assertEqual(t, r.Method, "GET")
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			fmt.Fprint(w, `
+				{
+					"transactions": [
+						{
+							"confirmations": null,
+							"status": "SENT",
+							"amount": "-1.25",
+							"reference": null,
+							"counterparty_type": "Sent to",
+							"updated_at": "2013-06-19T12:06:54.000+10:00",
+							"uuid": "880b8337-f262-460b-a762-6193f1b0ec33",
+							"bitcoin_txid": null,
+							"related_payment_uuid": "d4e4fdf8-27bf-4e0f-99dc-13bfe9e55434",
+							"counterparty_name": "jerrold@coinjar.io",
+							"created_at": "2013-06-19T12:06:54.000+10:00"
+						},
+						{
+							"confirmations": null,
+							"status": "SENT",
+							"amount": "-0.01",
+							"reference": null,
+							"counterparty_type": "Sent to",
+							"updated_at": "2013-05-14T15:36:30.000+10:00",
+							"uuid": "21691054-033a-40e3-abaf-85948c9aba44",
+							"bitcoin_txid": "c0bd705d19d329ac19a35996e2fde8da2cd6603d49c9a9775c12803bf1c75922",
+							"related_payment_uuid": "0b0db001-b64f-4cf9-ae44-1bafc0ee55a2",
+							"counterparty_name": "msiu1k3tmJjiXZ1ptfoWRuVJ6V3JNS19Ho",
+							"created_at": "2013-05-14T14:34:32.000+10:00"
+						}
+					]
+				}
+			`)
+		} else {
+			t.Errorf("Requested unexpected endpoint: %v", url)
+		}
+	}))
+	defer ts.Close()
+
+	client := NewCustomClient("pJ451Sk8tXz9LdUbGg1sobLUZuVzuJwdyr4sD3owFW4WYHxo", ts.URL)
+	transactions, err := client.Transactions()
+	assertNil(t, err)
+	assertEqual(t, len(transactions), 2)
+
+	{
+		transaction := transactions[0]
+		// assertEqual(t, transaction.Confirmations, nil)
+		assertEqual(t, transaction.Status, "SENT")
+		assertEqual(t, transaction.Amount, "-1.25")
+		// assertEqual(t, transaction.Reference, nil)
+		assertEqual(t, transaction.CounterpartyType, "Sent to")
+		assertEqual(t, transaction.UpdatedAt, "2013-06-19T12:06:54.000+10:00")
+		assertEqual(t, transaction.UUID, "880b8337-f262-460b-a762-6193f1b0ec33")
+		// assertEqual(t, transaction.BitcoinTxid, nil)
+		assertEqual(t, transaction.RelatedPaymentUUID, "d4e4fdf8-27bf-4e0f-99dc-13bfe9e55434")
+		assertEqual(t, transaction.CounterpartyName, "jerrold@coinjar.io")
+		assertEqual(t, transaction.CreatedAt, "2013-06-19T12:06:54.000+10:00")
+	}
+
+	{
+		transaction := transactions[1]
+		// assertEqual(t, transaction.Confirmations, nil)
+		assertEqual(t, transaction.Status, "SENT")
+		assertEqual(t, transaction.Amount, "-0.01")
+		// assertEqual(t, transaction.Reference, nil)
+		assertEqual(t, transaction.CounterpartyType, "Sent to")
+		assertEqual(t, transaction.UpdatedAt, "2013-05-14T15:36:30.000+10:00")
+		assertEqual(t, transaction.UUID, "21691054-033a-40e3-abaf-85948c9aba44")
+		assertEqual(t, transaction.BitcoinTxid, "c0bd705d19d329ac19a35996e2fde8da2cd6603d49c9a9775c12803bf1c75922")
+		assertEqual(t, transaction.RelatedPaymentUUID, "0b0db001-b64f-4cf9-ae44-1bafc0ee55a2")
+		assertEqual(t, transaction.CounterpartyName, "msiu1k3tmJjiXZ1ptfoWRuVJ6V3JNS19Ho")
+		assertEqual(t, transaction.CreatedAt, "2013-05-14T14:34:32.000+10:00")
+	}
+}
+
 func assertRequestUsesApiKey(t *testing.T, r *http.Request, key string) {
 	if !strings.HasPrefix(r.Header.Get("Authorization"), "Basic") {
 		t.Error("Not using Basic Authentication")
