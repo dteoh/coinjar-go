@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -359,13 +360,37 @@ func parseApiKey(r *http.Request) string {
 }
 
 func assertNil(t *testing.T, actual interface{}) {
-	if actual != nil {
+	if actual == nil {
+		return
+	}
+	_, file, line, ok := runtime.Caller(1)
+	if ok {
+		t.Errorf("Assertion 'nil' at %v:%v failed\n\tActual: %v", file, line, actual)
+	} else {
 		t.Errorf("Assertion 'nil' failed\n\tActual: %v", actual)
 	}
 }
 
+func assertNotNil(t *testing.T, actual interface{}) {
+	if actual != nil {
+		return
+	}
+	_, file, line, ok := runtime.Caller(1)
+	if ok {
+		t.Errorf("Assertion 'not nil' at %v:%v failed\n\tActual: %v", file, line, actual)
+	} else {
+		t.Errorf("Assertion 'not nil' failed\n\tActual: %v", actual)
+	}
+}
+
 func assertEqual(t *testing.T, actual, expected interface{}) {
-	if actual != expected {
+	if actual == expected {
+		return
+	}
+	_, file, line, ok := runtime.Caller(1)
+	if ok {
+		t.Errorf("Assertion 'equal' at %v:%v failed\n\tActual: %v\n\tExpected: %v", file, line, actual, expected)
+	} else {
 		t.Errorf("Assertion 'equal' failed\n\tActual: %v\n\tExpected: %v", actual, expected)
 	}
 }
