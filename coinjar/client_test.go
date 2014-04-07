@@ -833,6 +833,51 @@ func TestListTransactions(t *testing.T) {
 	}
 }
 
+func TestTransaction(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertRequestUsesApiKey(t, r, "pJ451Sk8tXz9LdUbGg1sobLUZuVzuJwdyr4sD3owFW4WYHxo")
+		if url := r.URL.Path; url == "/transactions/3eb68998-8eb5-44a8-a115-49a383dcecfa.json" {
+			assertEqual(t, r.Method, "GET")
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			fmt.Fprint(w, `
+				{
+					"transaction": {
+						"confirmations": null,
+						"status": "SENT",
+						"amount": "-0.01",
+						"reference": null,
+						"counterparty_type": "Sent to",
+						"updated_at": "2013-05-14T14:17:05.000+10:00",
+						"uuid": "3eb68998-8eb5-44a8-a115-49a383dcecfa",
+						"bitcoin_txid": "318d752be29ae839bf79f12d47314b0d6e60174eff6720b6cf23853d76d36583",
+						"related_payment_uuid": "f86c3672-a16f-4198-89d3-24ab85f59b5b",
+						"counterparty_name": "msiu1k3tmJjiXZ1ptfoWRuVJ6V3JNS19Ho",
+						"created_at": "2013-05-14T14:17:00.000+10:00"
+					}
+				}
+			`)
+		} else {
+			t.Errorf("Requested unexpected endpoint: %v", url)
+		}
+	}))
+	defer ts.Close()
+
+	client := NewCustomClient("pJ451Sk8tXz9LdUbGg1sobLUZuVzuJwdyr4sD3owFW4WYHxo", ts.URL)
+	transaction, err := client.Transaction("3eb68998-8eb5-44a8-a115-49a383dcecfa")
+	assertNil(t, err)
+
+	// assertEqual(t, transaction.Confirmations, nil)
+	assertEqual(t, transaction.Status, "SENT")
+	assertEqual(t, transaction.Amount, "-0.01")
+	// assertEqual(t, transaction.Reference, nil)
+	assertEqual(t, transaction.CounterpartyType, "Sent to")
+	assertEqual(t, transaction.UpdatedAt, "2013-05-14T14:17:05.000+10:00")
+	assertEqual(t, transaction.UUID, "3eb68998-8eb5-44a8-a115-49a383dcecfa")
+	assertEqual(t, transaction.BitcoinTxid, "318d752be29ae839bf79f12d47314b0d6e60174eff6720b6cf23853d76d36583")
+	assertEqual(t, transaction.RelatedPaymentUUID, "f86c3672-a16f-4198-89d3-24ab85f59b5b")
+	assertEqual(t, transaction.CounterpartyName, "msiu1k3tmJjiXZ1ptfoWRuVJ6V3JNS19Ho")
+	assertEqual(t, transaction.CreatedAt, "2013-05-14T14:17:00.000+10:00")
+}
 func assertRequestUsesApiKey(t *testing.T, r *http.Request, key string) {
 	if !strings.HasPrefix(r.Header.Get("Authorization"), "Basic") {
 		t.Error("Not using Basic Authentication")
