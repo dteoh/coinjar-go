@@ -600,6 +600,77 @@ func TestListPayments(t *testing.T) {
 	}
 }
 
+func TestPayment(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertRequestUsesApiKey(t, r, "pJ451Sk8tXz9LdUbGg1sobLUZuVzuJwdyr4sD3owFW4WYHxo")
+		if url := r.URL.Path; url == "/payments/d4e4fdf8-27bf-4e0f-99dc-13bfe9e55434.json" {
+			assertEqual(t, r.Method, "GET")
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			fmt.Fprint(w, `
+				{
+					"payment": {
+						"status": "COMPLETED",
+						"related_transaction": {
+							"confirmations": null,
+							"status": "SENT",
+							"amount": "-1.25",
+							"reference": null,
+							"user_id": 1,
+							"counterparty_user_id": 3,
+							"updated_at": "2013-06-19T12:06:54.000+10:00",
+							"uuid": "880b8337-f262-460b-a762-6193f1b0ec33",
+							"bitcoin_txid": null,
+							"counterparty_address": null,
+							"id": 10018,
+							"payment_id": 9590,
+							"created_at": "2013-06-19T12:06:54.000+10:00"
+						},
+						"amount": "1.25",
+						"reference": null,
+						"updated_at": "2013-06-19T12:06:54.000+10:00",
+						"uuid": "d4e4fdf8-27bf-4e0f-99dc-13bfe9e55434",
+						"payee_name": "jerrold@coinjar.io",
+						"payee_type": "WALLET",
+						"created_at": "2013-06-19T12:06:53.000+10:00"
+					}
+				}
+			`)
+		} else {
+			t.Errorf("Requested unexpected endpoint: %v", url)
+		}
+	}))
+	defer ts.Close()
+
+	client := NewCustomClient("pJ451Sk8tXz9LdUbGg1sobLUZuVzuJwdyr4sD3owFW4WYHxo", ts.URL)
+	payment, err := client.Payment("d4e4fdf8-27bf-4e0f-99dc-13bfe9e55434")
+	assertNil(t, err)
+
+	assertEqual(t, payment.Status, "COMPLETED")
+	assertEqual(t, payment.Amount, "1.25")
+	// assertEqual(t, payment.Reference, nil)
+	assertEqual(t, payment.UpdatedAt, "2013-06-19T12:06:54.000+10:00")
+	assertEqual(t, payment.UUID, "d4e4fdf8-27bf-4e0f-99dc-13bfe9e55434")
+	assertEqual(t, payment.PayeeName, "jerrold@coinjar.io")
+	assertEqual(t, payment.PayeeType, "WALLET")
+	assertEqual(t, payment.CreatedAt, "2013-06-19T12:06:53.000+10:00")
+
+	related := payment.RelatedTransaction
+	assertNotNil(t, related)
+	// assertEqual(t, related.Confirmations, nil)
+	assertEqual(t, related.Status, "SENT")
+	assertEqual(t, related.Amount, "-1.25")
+	// assertEqual(t, related.Reference, nil)
+	assertEqual(t, related.UserID, 1)
+	assertEqual(t, related.CounterpartyUserID, 3)
+	assertEqual(t, related.UpdatedAt, "2013-06-19T12:06:54.000+10:00")
+	assertEqual(t, related.UUID, "880b8337-f262-460b-a762-6193f1b0ec33")
+	// assertEqual(t, related.BitcoinTxid, nil)
+	// assertEqual(t, related.CounterpartyAddress, nil)
+	assertEqual(t, related.ID, 10018)
+	assertEqual(t, related.PaymentID, 9590)
+	assertEqual(t, related.CreatedAt, "2013-06-19T12:06:54.000+10:00")
+}
+
 func assertRequestUsesApiKey(t *testing.T, r *http.Request, key string) {
 	if !strings.HasPrefix(r.Header.Get("Authorization"), "Basic") {
 		t.Error("Not using Basic Authentication")
