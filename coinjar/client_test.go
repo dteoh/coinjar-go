@@ -878,6 +878,35 @@ func TestTransaction(t *testing.T) {
 	assertEqual(t, transaction.CounterpartyName, "msiu1k3tmJjiXZ1ptfoWRuVJ6V3JNS19Ho")
 	assertEqual(t, transaction.CreatedAt, "2013-05-14T14:17:00.000+10:00")
 }
+
+func TestFairRate(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertRequestUsesApiKey(t, r, "pJ451Sk8tXz9LdUbGg1sobLUZuVzuJwdyr4sD3owFW4WYHxo")
+		if url := r.URL.Path; url == "/fair_rate/USD.json" {
+			assertEqual(t, r.Method, "GET")
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			fmt.Fprint(w, `
+				{
+					"bid": "101.4713",
+					"ask": "103.5213",
+					"spot": "102.4963"
+				}
+			`)
+		} else {
+			t.Errorf("Requested unexpected endpoint: %v", url)
+		}
+	}))
+	defer ts.Close()
+
+	client := NewCustomClient("pJ451Sk8tXz9LdUbGg1sobLUZuVzuJwdyr4sD3owFW4WYHxo", ts.URL)
+	rate, err := client.FairRate("USD")
+	assertNil(t, err)
+
+	assertEqual(t, rate.Bid, "101.4713")
+	assertEqual(t, rate.Ask, "103.5213")
+	assertEqual(t, rate.Spot, "102.4963")
+}
+
 func assertRequestUsesApiKey(t *testing.T, r *http.Request, key string) {
 	if !strings.HasPrefix(r.Header.Get("Authorization"), "Basic") {
 		t.Error("Not using Basic Authentication")
